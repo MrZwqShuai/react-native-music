@@ -1,0 +1,40 @@
+{
+  "name": "WyMusic",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@types/react-native-vector-icons": "^4.6.1",
+    "@types/react-navigation": "^2.0.9",
+    "react": "16.3.1",
+    "react-native": "0.55.4",
+    "react-native-scrollable-tab-view": "^0.8.0",
+    "react-native-slider": "^0.11.0",
+    "react-native-tab-view": "^1.0.2",
+    "react-native-vector-icons": "^4.6.0",
+    "react-native-video": "^3.0.0",
+    "react-navigation": "^2.5.5",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^16.4.6",
+    "@types/react-native": "^0.55.26",
+    "@types/react-native-scrollable-tab-view": "^0.8.1",
+    "@types/react-native-tab-view": "^1.0.1",
+    "@types/react-native-video": "^2.0.4",
+    "@types/react-redux": "^6.0.3",
+    "babel-jest": "23.2.0",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "23.2.0",
+    "react-native-typescript-transformer": "^1.2.10",
+    "react-test-renderer": "16.3.1",
+    "typescript": "^2.9.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
