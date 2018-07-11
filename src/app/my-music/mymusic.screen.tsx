@@ -11,7 +11,7 @@ type Props = {
 class MyMusicScreen extends PureComponent<Props>{
   static navigationOptions = ({navigation}: any) => ({
     title: '正在播放...',
-    tabBarVisible: false
+    tabBarVisible: false,
   })
   public render() {
     const { navigate } = this.props.navigation;

@@ -3,10 +3,11 @@ import { PureComponent } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import IconFeather from 'react-native-vector-icons/Feather';
-import { Icons } from './recommend-model';
+import { Icons, personalized } from './recommend-model';
 import RecommendPlate from './recommend-plate';
 type Props = {
-  navigation: any
+  navigation: any;
+  personalizedPlayList: Array<personalized>
 }
 declare const alert: any;
 
@@ -17,7 +18,6 @@ class RecommendList extends PureComponent<Props>{
   }
 
   public render() {
-    console.log(this.props)
     const { navigate } = this.props.navigation;
     const icons: Icons[] = [
       { name: 'md-radio', title: '私人FM' },
@@ -41,7 +41,7 @@ class RecommendList extends PureComponent<Props>{
           {recommendMenu}
         </View>
         <View style={{ height: .4, backgroundColor: '#ccc', marginTop: 15, transform: [{ translateY: 0 }] }}></View>
-        <RecommendPlate navigation={this.props.navigation} />
+        <RecommendPlate navigation={this.props.navigation} personalizedPlayList={this.props.personalizedPlayList} />
       </View>
     )
   }

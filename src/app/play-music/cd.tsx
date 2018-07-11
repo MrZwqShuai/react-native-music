@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PureComponent } from 'react';
-import { View, Text, StyleSheet, Easing, Image, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback } from 'react-native';
 import { Animated } from 'react-native';
 import screen from '../../utils/screen';
 import { setLyricShow } from '../../redux/action';
@@ -20,13 +20,16 @@ class CDScene extends PureComponent<Props, State> {
   rotateAnim: any;
 
   timer: number;
+  
+  wiperAnim: any;
 
   constructor(props: Props) {
     super(props);
     this.state = {
       rotate: 100
     };
-    this.rotateAnim = new Animated.Value(0),
+    this.rotateAnim = new Animated.Value(0);
+    this.wiperAnim = new Animated.Value(0);
   }
 
   public render() {
@@ -34,7 +37,11 @@ class CDScene extends PureComponent<Props, State> {
     const rotateAnimInterpolate = this.rotateAnim.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg']
-    })
+    });
+    const wiperAnimInterpolate = this.wiperAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '70deg']
+    });
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
         <Animated.Image source={require('../../assets/images/needle.png')} style={styles.CdNeedle}>
@@ -70,7 +77,7 @@ class CDScene extends PureComponent<Props, State> {
       {
         toValue: 1,
         easing: Easing.out(Easing.linear),
-        duration: 3000,
+        duration: 10000,
       });
   }
 
@@ -80,11 +87,19 @@ class CDScene extends PureComponent<Props, State> {
         this.rotateAnim.setValue(0);
         this.rotateStart();
       }
-    })
+    });
+    Animated.timing(
+      this.wiperAnim,
+      {
+        toValue: 1,
+        easing: Easing.out(Easing.linear),
+        duration: 1000,
+      }
+    ).start();
   }
 
   rotateStop() {
-    this.createRotateAnim().stop();
+    // this.createRotateAnim().stop();
   }
 
 }

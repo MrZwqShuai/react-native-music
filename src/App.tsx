@@ -17,6 +17,7 @@ import PlayMusicScene from './app/play-music/index';
 import reducer from './redux/reducer';
 import { Provider } from 'react-redux';
 import { setLyricShow } from './redux/action';
+import SongSheetDetail from './app/detail-page/song-sheet';
 const store = createStore(reducer);
 console.log(store.getState(), '-------999---888---')
 setTimeout(() => {
@@ -138,6 +139,9 @@ const MainScreentNavigator = createBottomTabNavigator(
     },
     PlayMusic: {
       screen: PlayMusicScene
+    },
+    SongSheet: {
+      screen: SongSheetDetail
     }
   })
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PureComponent } from 'react';
-import { View, Text, StyleSheet, Easing, Image, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback } from 'react-native';
 import { Animated } from 'react-native';
 import screen from '../../utils/screen';
 import CDScene from './cd';
@@ -11,8 +11,10 @@ import Icon from 'react-native-vector-icons/SimpleLineIcons';
 import Slider from 'react-native-slider';
 import Video from 'react-native-video';
 import { getAudioTime } from '../../utils/index';
+import { getMusicUrlById } from '../api/index';
 type Props = {
   isShowLyric: boolean;
+  navigation: any;
 }
 
 type State = {
@@ -20,6 +22,7 @@ type State = {
   progressSpeed: number;
   totalDuration: number;
   currentDuration: number;
+  songUrl: string;
 }
 declare const alert: any;
 class PlayMusicScene extends PureComponent<Props, State> {
@@ -37,7 +40,8 @@ class PlayMusicScene extends PureComponent<Props, State> {
       isPlaying: false,
       progressSpeed: 0,
       totalDuration: 0,
-      currentDuration: 0
+      currentDuration: 0,
+      songUrl: ''
     };
   }
 
@@ -50,15 +54,15 @@ class PlayMusicScene extends PureComponent<Props, State> {
       playMusicSceneRender = <CDScene isPlaying={this.state.isPlaying} onRef={(ref: any) => { this.onRef(ref) }} />
     }
     if (this.state.isPlaying) {
-      musicState = <Icon name="control-pause" size={22} color="#fff" onPress={() => { this.toggleMusicState() }} />;
+      musicState = <Icon name="control-pause" size={22} color="#fff" />;
     } else {
-      musicState = <Icon name="control-play" size={22} color="#fff" onPress={() => { this.toggleMusicState() }} />;
+      musicState = <Icon name="control-play" size={22} color="#fff" />;
     }
     return (
       <View style={{ flex: 1, backgroundColor: '#9e9e9e' }}>
         {playMusicSceneRender}
         <View>
-          <Video source={{ uri: "http://47.98.137.213/wymusic/%E6%83%85%E9%9D%9E%E5%BE%97%E5%B7%B2.mp3" }}   // Can be a URL or a local file.
+          <Video source={{ uri: this.state.songUrl}}   // Can be a URL or a local file.
             ref={(ref) => {
               this.player = ref
             }}                                      // Store reference
@@ -67,7 +71,13 @@ class PlayMusicScene extends PureComponent<Props, State> {
             onEnd={this.onEnd}                      // Callback when playback finishes
             onError={this.videoError}               // Callback when video cannot be loaded
             style={styles.backgroundVideo}
-            paused={!this.state.isPlaying}
+            paused={!this.state.isPlaying}                          // Pauses playback entirely.
+            resizeMode="cover"                      // Fill the whole screen at aspect ratio.*
+            repeat={true}                           // Repeat forever.
+            playInBackground               // Audio continues to play when app entering background.
+            playWhenInactive={false}                // [iOS] Video continues to play when control or notification center are shown.
+            progressUpdateInterval={250.0}          // [iOS] Interval to fire onProgress (default to ~250ms)
+            ignoreSilentSwitch={"ignore"} 
           />
         </View>
         <View style={{ marginLeft: 10, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -92,7 +102,9 @@ class PlayMusicScene extends PureComponent<Props, State> {
         <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
           <Icon name="loop" size={22} color="#fff" />
           <Icon name="control-start" size={22} color="#fff" />
-          {musicState}
+          <TouchableWithoutFeedback onPress={() => { this.toggleMusicState() }}>
+            {musicState}
+          </TouchableWithoutFeedback>
           <Icon name="control-end" size={22} color="#fff" />
           <Icon name="list" size={22} color="#fff" />
         </View>
@@ -101,8 +113,14 @@ class PlayMusicScene extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
+    this.getMusicUrlById();
   }
-  
+
+  getSongId(): number {
+    let songId = this.props.navigation.state.params.songId;
+    return songId;
+  }
+
   onEnd() {
     console.log('音频移除...');
   }
@@ -118,21 +136,26 @@ class PlayMusicScene extends PureComponent<Props, State> {
     })
   }
 
+  // 正在播放音乐
   onProgressMusic(e: any) {
     let currentTime = Math.floor(e.currentTime);
+    let progressSpeed = e.currentTime/this.state.totalDuration;
     this.setState({
-      currentDuration: currentTime
+      currentDuration: currentTime,
+      progressSpeed: Number(progressSpeed)
     });
-    console.log(e.currentTime, '正在播放...');
   }
 
   toggleMusicState() {
+    if (this.state.isPlaying) {
+      this.setState({
+        isPlaying: false
+      });
+      this.CDSceneRef.rotateStop();
+    } else {
+      this.CDSceneRef.rotateStart();
+    }
     this.setState((prevState: any) => {
-      if (prevState.isPlaying) {
-        this.CDSceneRef.rotateStop()
-      } else {
-        this.CDSceneRef.rotateStart()
-      }
       return {
         isPlaying: !this.state.isPlaying
       }
@@ -148,6 +171,10 @@ class PlayMusicScene extends PureComponent<Props, State> {
       currentDuration: Math.floor(speed * this.state.totalDuration)
     });
     this.player.seek(this.state.currentDuration);
+  }
+
+  componentWillReceiveProps(nextProps: any) {
+    console.log(nextProps, '----nextProps----');
   }
 
   /**
@@ -169,6 +196,18 @@ class PlayMusicScene extends PureComponent<Props, State> {
   onRef(ref: any) {
     this.CDSceneRef = ref;
   }
+
+  async getMusicUrlById() {
+    let songId = this.getSongId();
+    let response = await getMusicUrlById(songId);
+    let responseJson = await response.json();
+    if (responseJson.code === 200) {
+      this.setState({
+        songUrl: responseJson.data[0].url
+      });
+      console.log(this.state.songUrl, '--90dsadsad0---')
+    }
+  }
 }
 
 const styles = StyleSheet.create({
@@ -181,7 +220,8 @@ const styles = StyleSheet.create({
     color: '#f6f6f6'
   },
   backgroundVideo: {
-    height: 60
+    width: 0,
+    height: 0
   }
 })
 

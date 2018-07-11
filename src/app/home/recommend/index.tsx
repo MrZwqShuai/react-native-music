@@ -3,7 +3,8 @@ import { PureComponent } from 'react';
 import { Text, View, ScrollView, FlatList, RefreshControl } from 'react-native';
 import BannerComponent from '../../../components/banner/index';
 import RecommendList from './recommend-list';
-import { getBanners, getPlayListNewest } from '../../api/index';
+import { getBanners, getPersonalizedPlayList, getNewestPlayList } from '../../api/index';
+import { personalized } from './recommend-model';
 
 type Props = {
   tabLabel: string;
@@ -11,12 +12,13 @@ type Props = {
 }
 
 type Banner = {
-  path: string;
+  picUrl: string;
 }
 
 type State = {
   banners: Array<Banner>;
   isRefresh: boolean;
+  personalizedPlayList: Array<personalized>
 }
 
 class RecommendScene extends PureComponent<Props, State> {
@@ -25,7 +27,8 @@ class RecommendScene extends PureComponent<Props, State> {
     super(props);
     this.state = {
       banners: [],
-      isRefresh: false
+      isRefresh: false,
+      personalizedPlayList: []
     };
   }
 
@@ -47,7 +50,7 @@ class RecommendScene extends PureComponent<Props, State> {
       >
         <View >
           <BannerComponent banners={this.state.banners} />
-          <RecommendList navigation={this.props.navigation} />
+          <RecommendList navigation={this.props.navigation} personalizedPlayList={this.state.personalizedPlayList} />
         </View>
       </ScrollView>
     )
@@ -55,7 +58,8 @@ class RecommendScene extends PureComponent<Props, State> {
 
   componentDidMount() {
     this.renderBanners();
-    // this.getPlayListNewest();
+    this.getPersonalizedPlayList();
+    this.getNewestPlayList();
   }
 
 
@@ -83,10 +87,11 @@ class RecommendScene extends PureComponent<Props, State> {
 
   async renderBanners(): Promise<object> {
     let bannerElList: JSX.Element[];
-    let banners: Array<{ path: string }> = await this.getBanners();
+    let banners: Array<{ picUrl: string }> = await this.getBanners();
     this.setState({
       banners: banners
     });
+    console.log(banners, '-dsadsad-9-');
     return banners;
   }
 
@@ -96,16 +101,51 @@ class RecommendScene extends PureComponent<Props, State> {
   async getBanners(): Promise<any> {
     let response = await getBanners();
     let responseJson = await response.json();
-    let banners = responseJson.data;
+    let banners = responseJson.banners;
     return banners;
   }
 
-  async getPlayListNewest(): Promise<any> {
-    let response = await getPlayListNewest();
+/**
+ * 获取热门歌单
+ */
+
+  async getPersonalizedPlayList(): Promise<any> {
+    let response = await getPersonalizedPlayList();
     let responseJson = await response.json();
-    let banners = responseJson.data;
-    console.log(responseJson, 'response')
+    console.log(responseJson, '-0090222-9-');
+    let personalizedPlayList;
+    if(responseJson.code === 200) {
+      personalizedPlayList = responseJson.result;
+    } else {
+      alert('获取歌单失败...');
+    }
+    this.setState({
+      personalizedPlayList: personalizedPlayList
+    });
+    return personalizedPlayList;
   }
+
+  
+/**
+ * 获取最新音乐
+ */
+async getNewestPlayList(): Promise<any> {
+  let response = await getNewestPlayList();
+  let responseJson = await response.json();
+  console.log(responseJson, '-getNewestPlayList-9-');
+  let newestPlayList;
+  if(responseJson.code === 200) {
+    // newestPlayList = responseJson.result;
+  } else {
+    alert('获取最新音乐失败...');
+  }
+  this.setState({
+    // newestPlayList: newestPlayList
+  });
+  return newestPlayList;
+}
+
+
 }
 
 export default RecommendScene;

@@ -5,7 +5,7 @@ import { Text, View, ScrollView, Image } from 'react-native';
 import screen from '../../utils/screen';
 
 type Banner = {
-  path: string;
+  picUrl: string;
 }
 
 type Props = {
@@ -20,7 +20,7 @@ class BannerComponent extends PureComponent<Props> {
 
   render() {
     const bannerView = this.props.banners.map((banner: Banner, i: number) => {
-      return <Image key={i} source={{ uri: banner.path }} style={{ width: screen.width, height: 120 }} />
+      return <Image key={i} source={{ uri: banner.picUrl }} style={{ width: screen.width, height: 120 }} />
     });
     return (
       <ScrollView
