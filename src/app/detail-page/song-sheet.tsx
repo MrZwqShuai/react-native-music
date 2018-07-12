@@ -8,9 +8,13 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { getPlaylistDetailById } from '../api/index';
 import { PlayList, TrackSong } from '../interface/index';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { setSongDetail } from '../../redux/action';
+import { SongDetailState } from '../../redux/redux-model';
+import { connect } from 'react-redux';
 
 type Props = {
   navigation: any;
+  goPlayMusicScreen: any;
 }
 
 type State = {
@@ -52,7 +56,7 @@ class SongSheetDetail extends PureComponent<Props, State>{
 
   public createSongListItem(trackSong: TrackSong, idx: number) {
     const songListItem = (
-      <TouchableWithoutFeedback onPress={() => {this.goPlayMusicScreen(trackSong.id)}} key={trackSong.id}>
+      <TouchableWithoutFeedback onPress={() => {this.props.goPlayMusicScreen({id: trackSong.id, name: trackSong.name, coverImg: trackSong.al.picUrl}, this.props.navigation)}} key={trackSong.id}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between',paddingBottom: 10, paddingTop: 10, backgroundColor: '#fff' }} >
         <View style={{ flexDirection: 'row',alignItems: 'center'}}>
           <Text style={{ marginLeft: 14 }}>
@@ -165,12 +169,6 @@ class SongSheetDetail extends PureComponent<Props, State>{
     return personalizedId;
   }
 
-  goPlayMusicScreen(songId: number) {
-    const { navigate } = this.props.navigation;
-    navigate('PlayMusic', {
-      songId: songId
-    });
-  }
 }
 
 
@@ -193,4 +191,17 @@ const styles = StyleSheet.create({
   }
 })
 
-export default SongSheetDetail;
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    goPlayMusicScreen: (song: SongDetailState, navigation: any) => {
+      dispatch(setSongDetail(song));
+      const { navigate } = navigation;
+      console.log(song.id);
+        navigate('PlayMusic', {
+          songId: song.id
+        });
+    }
+  }
+}
+
+export default connect(null, mapDispatchToProps)(SongSheetDetail);

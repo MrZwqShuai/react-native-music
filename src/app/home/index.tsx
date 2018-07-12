@@ -91,9 +91,6 @@ export default class HomeScreen extends PureComponent<Props> {
   render() {
     const { navigate } = this.props.navigation;
     console.log(this.props.navigation, 9)
-    setTimeout(() => {
-      navigate('PlayMusic')
-    }, 3000)
     return (
       <ScrollableTabView
         tabBarBackgroundColor="#D43C33"

@@ -6,7 +6,8 @@ import screen from '../../utils/screen';
 import { setLyricShow } from '../../redux/action';
 import { connect } from 'react-redux';
 type Props = {
-  isPlaying: boolean
+  isPlaying: boolean;
+  coverImg: string;
 }
 
 type State = {
@@ -33,14 +34,9 @@ class CDScene extends PureComponent<Props, State> {
   }
 
   public render() {
-    console.log(this.props, '777');
     const rotateAnimInterpolate = this.rotateAnim.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg']
-    });
-    const wiperAnimInterpolate = this.wiperAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0deg', '70deg']
     });
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
@@ -55,7 +51,7 @@ class CDScene extends PureComponent<Props, State> {
           }]}
           >
             {this.props.children}
-            <Image source={require('../../assets/images/cdcover.png')} style={styles.CdCover} />
+            <Image source={{uri: this.props.coverImg}} style={styles.CdCover} />
           </Animated.View>
         </TouchableWithoutFeedback>
       </View>
@@ -63,7 +59,7 @@ class CDScene extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    console.log('this.props.onRef', this.props.onRef)
+    console.log('this.props.onRef', this.props.onRef);
     this.props.onRef(this);
   }
 

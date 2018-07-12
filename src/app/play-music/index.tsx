@@ -12,9 +12,11 @@ import Slider from 'react-native-slider';
 import Video from 'react-native-video';
 import { getAudioTime } from '../../utils/index';
 import { getMusicUrlById } from '../api/index';
+import { SongDetail } from '../../redux/redux-model';
 type Props = {
   isShowLyric: boolean;
   navigation: any;
+  songDetail: SongDetail
 }
 
 type State = {
@@ -27,8 +29,10 @@ type State = {
 declare const alert: any;
 class PlayMusicScene extends PureComponent<Props, State> {
 
+  static navTitle = '';
+
   static navigationOptions = ({ navigation }: any) => ({
-    title: '正在播放...',
+    title: PlayMusicScene.navTitle,
     tabBarVisible: false
   })
 
@@ -51,7 +55,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
     if (this.props.isShowLyric) {
       playMusicSceneRender = <LyricScene />
     } else {
-      playMusicSceneRender = <CDScene isPlaying={this.state.isPlaying} onRef={(ref: any) => { this.onRef(ref) }} />
+      playMusicSceneRender = <CDScene isPlaying={this.state.isPlaying} coverImg={this.props.songDetail.coverImg} onRef={(ref: any) => { this.onRef(ref) }} />
     }
     if (this.state.isPlaying) {
       musicState = <Icon name="control-pause" size={22} color="#fff" />;
@@ -71,13 +75,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
             onEnd={this.onEnd}                      // Callback when playback finishes
             onError={this.videoError}               // Callback when video cannot be loaded
             style={styles.backgroundVideo}
-            paused={!this.state.isPlaying}                          // Pauses playback entirely.
-            resizeMode="cover"                      // Fill the whole screen at aspect ratio.*
-            repeat={true}                           // Repeat forever.
-            playInBackground               // Audio continues to play when app entering background.
-            playWhenInactive={false}                // [iOS] Video continues to play when control or notification center are shown.
-            progressUpdateInterval={250.0}          // [iOS] Interval to fire onProgress (default to ~250ms)
-            ignoreSilentSwitch={"ignore"} 
+            paused={!this.state.isPlaying}
           />
         </View>
         <View style={{ marginLeft: 10, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -220,15 +218,16 @@ const styles = StyleSheet.create({
     color: '#f6f6f6'
   },
   backgroundVideo: {
-    width: 0,
     height: 0
   }
 })
 
 
-const mapStateToProps = ({ CDReducer }: any) => {
+const mapStateToProps = ({ CDReducer, songDetailReducer }: any) => {
+  PlayMusicScene.navTitle = songDetailReducer.song.name;
   return {
-    isShowLyric: CDReducer.isShowLyric
+    isShowLyric: CDReducer.isShowLyric,
+    songDetail: songDetailReducer.song
   }
 }
 
