@@ -227,7 +227,7 @@ const mapStateToProps = ({ CDReducer, songDetailReducer }: any) => {
   PlayMusicScene.navTitle = songDetailReducer.song.name;
   return {
     isShowLyric: CDReducer.isShowLyric,
-    songDetail: songDetailReducer.song
+    songDetail: songDetailReducer.song 
   }
 }
 
