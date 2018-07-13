@@ -44,20 +44,20 @@ class CDScene extends PureComponent<Props, State> {
     });
     const CDCore = this.props.tracks.map((trackSong: TrackSong, idx: number) => {
       return (
-      <View style={{ width: screen.width, alignItems: 'center' }} key={idx}>
-      <TouchableWithoutFeedback
-        onPress={() => { this.props._onCDPress() }}>
-        <Animated.View style={[styles.CdBox, {
-          transform: [{
-            rotate: rotateAnimInterpolate
-          }]
-        }]}
-        >
-          {this.props.children}
-          <Image source={{ uri: trackSong.al.picUrl }} style={styles.CdCover} />
-        </Animated.View>
-      </TouchableWithoutFeedback>
-    </View>
+        <View style={{ width: screen.width, alignItems: 'center' }} key={idx}>
+          <TouchableWithoutFeedback
+            onPress={() => { this.props._onCDPress() }}>
+            <Animated.View style={[styles.CdBox, {
+              transform: [{
+                rotate: rotateAnimInterpolate
+              }]
+            }]}
+            >
+              {this.props.children}
+              <Image source={{ uri: trackSong.al.picUrl }} style={styles.CdCover} />
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
       )
     })
     return CDCore
@@ -97,7 +97,7 @@ class CDScene extends PureComponent<Props, State> {
 
   private onScrollEnd(scroll: any) {
     console.log(scroll.nativeEvent.contentOffset.x);
-    let currentIdx = scroll.nativeEvent.contentOffset.x/screen.width;
+    let currentIdx = scroll.nativeEvent.contentOffset.x / screen.width;
     this.props.toggleMusic(currentIdx);
   }
 

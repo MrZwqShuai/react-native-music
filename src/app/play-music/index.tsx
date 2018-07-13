@@ -45,7 +45,10 @@ class PlayMusicScene extends PureComponent<Props, State> {
   sound: any;
 
   // 定时器引用
-  timer: any;
+  timer: number;
+
+  // 用于set滑动条
+  currentTimer: number;
 
   constructor(props: Props) {
     super(props);
@@ -113,28 +116,19 @@ class PlayMusicScene extends PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.destoryMusic();
+    this.stopMusic();
     clearTimeout(this.timer);
+    clearInterval(this.currentTimer);
   }
 
   getSongId(songIdx: number): number {
     let songId = this.props.songTracks[songIdx].id;
     return songId;
   }
-
-  onEnd() {
-    console.log('音频移除...');
-  }
-
   videoError() {
-    alert('播放失败, 请重试');
+    clearInterval(this.currentTimer);
   }
 
-  onLoadMusic(e: any) {
-    console.log(this.player, '-------e--------');
-    this.setState({
-      totalDuration: e.duration
-    })
-  }
 
   // 正在播放音乐
   onProgressMusic(e: any) {
@@ -147,6 +141,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
   }
 
   toggleMusicState() {
+    clearInterval(this.currentTimer);
     if (this.state.isPlaying) {
       this.pauseMusic()
       this.setState({
@@ -173,7 +168,14 @@ class PlayMusicScene extends PureComponent<Props, State> {
       this.videoError();
       sound.reset();
     });
-    // this.CDSceneRef.rotateStart();
+    this.currentTimer = setInterval(() => {
+      sound.getCurrentTime((seconds: number) => {
+        this.setState({
+          currentDuration: Math.floor(seconds),
+          progressSpeed: seconds/this.state.totalDuration
+        });
+      });
+    }, 1000);
   }
 
   /**
@@ -191,22 +193,32 @@ class PlayMusicScene extends PureComponent<Props, State> {
   }
 
   /**
+   * stop music
+   */
+  stopMusic() {
+    this.sound.stop();
+  }
+
+
+  /**
    * 给子组件调用 滑屏切换音乐
    */
   async toggleMusic(currentIdx: number) {
-    this.destoryMusic();
+    this.stopMusic();
+    clearInterval(this.currentTimer);
     this.setState((prevState: any) => {
       return {
         isPlaying: true
       }
     });
     this.CDSceneRef.rotateStop();
-    this.CDSceneRef.rotateStart();
     let soundInstance = await this.getMusicUrlByIdx(currentIdx);
     // 这里有问题 为毛定时器不准...
     this.timer = setTimeout(() => {
       this.playMusice(soundInstance);
-    }, 8000);
+      this.CDSceneRef.rotateStart();
+      clearTimeout(this.timer);
+    }, 9000);
   }
 
   /**
@@ -216,7 +228,8 @@ class PlayMusicScene extends PureComponent<Props, State> {
     this.setState({
       currentDuration: Math.floor(speed * this.state.totalDuration)
     });
-    this.player.seek(this.state.currentDuration);
+    this.sound.setCurrentTime(speed * this.state.totalDuration);
+    // this.player.seek(this.state.currentDuration);
   }
 
 
@@ -246,7 +259,6 @@ class PlayMusicScene extends PureComponent<Props, State> {
 
   playSound(songResource: string) {
     const callback = (error, sound) => {
-      console.log(error, '--error--')
       if (error) {
         Alert.alert('error', error.message);
         return;
@@ -256,7 +268,6 @@ class PlayMusicScene extends PureComponent<Props, State> {
       });
     };
     this.sound = new Sound(songResource, Sound.MAIN_BUNDLE, error => callback(error, this.sound));
-    console.log(this.sound, '歌曲信息');
     return this.sound;
   }
 
@@ -296,7 +307,6 @@ const styles = StyleSheet.create({
 
 
 const mapStateToProps = ({ CDReducer, songDetailReducer }: any) => {
-  console.log(songDetailReducer, 'songDetailReducer')
   return {
     isShowLyric: CDReducer.isShowLyric,
     songDetail: songDetailReducer.song,
