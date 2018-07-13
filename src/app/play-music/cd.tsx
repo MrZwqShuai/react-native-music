@@ -45,7 +45,7 @@ class CDScene extends PureComponent<Props, State> {
     const CDCore = this.props.tracks.map((trackSong: TrackSong, idx: number) => {
       return (
         <View style={{ width: screen.width, alignItems: 'center' }} key={idx}>
-          <TouchableWithoutFeedback
+          <TouchableWithoutFeedback 
             onPress={() => { this.props._onCDPress() }}>
             <Animated.View style={styles.CdBox}
             >
