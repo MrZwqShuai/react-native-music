@@ -8,7 +8,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { getPlaylistDetailById } from '../api/index';
 import { PlayList, TrackSong } from '../interface/index';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { setSongDetail } from '../../redux/action';
+import { setSongDetail, setSongTracks } from '../../redux/action';
 import { SongDetailState } from '../../redux/redux-model';
 import { connect } from 'react-redux';
 
@@ -56,23 +56,23 @@ class SongSheetDetail extends PureComponent<Props, State>{
 
   public createSongListItem(trackSong: TrackSong, idx: number) {
     const songListItem = (
-      <TouchableWithoutFeedback onPress={() => {this.props.goPlayMusicScreen({id: trackSong.id, name: trackSong.name, coverImg: trackSong.al.picUrl}, this.props.navigation)}} key={trackSong.id}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between',paddingBottom: 10, paddingTop: 10, backgroundColor: '#fff' }} >
-        <View style={{ flexDirection: 'row',alignItems: 'center'}}>
-          <Text style={{ marginLeft: 14 }}>
-            {idx + 1}
-          </Text>
-          <View style={{ marginLeft: 15 }}>
-            <Text style={{ color: '#000' }}>
-              {trackSong.name}
+      <TouchableWithoutFeedback onPress={() => { this.props.goPlayMusicScreen({ id: trackSong.id, name: trackSong.name, coverImg: trackSong.al.picUrl, idx }, this.state.playlist.tracks, this.props.navigation) }} key={trackSong.id}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, paddingTop: 10, backgroundColor: '#fff' }} >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ marginLeft: 14 }}>
+              {idx + 1}
             </Text>
-            <Text style={{ color: '#ccc', fontSize: 11 }}>
-              {trackSong.ar[0].name} - {trackSong.al.name}
-            </Text>
+            <View style={{ marginLeft: 15 }}>
+              <Text style={{ color: '#000' }}>
+                {trackSong.name}
+              </Text>
+              <Text style={{ color: '#ccc', fontSize: 11 }}>
+                {trackSong.ar[0].name} - {trackSong.al.name}
+              </Text>
+            </View>
           </View>
+          <Ionicons name="ios-more" size={20} color="#ccc" style={{ marginRight: 15 }} />
         </View>
-        <Ionicons name="ios-more" size={20} color="#ccc"  style={{marginRight: 15}}/>
-      </View>
       </TouchableWithoutFeedback>
     )
     return songListItem;
@@ -129,9 +129,9 @@ class SongSheetDetail extends PureComponent<Props, State>{
           </View>
         </View>
         <View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'rosybrown', borderBottomColor: '#ddd', borderBottomWidth: .5}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'rosybrown', borderBottomColor: '#ddd', borderBottomWidth: .5 }}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderTopLeftRadius: 10, backgroundColor: '#fff' }}>
-              <EvilIcons name="play" size={25} color="#000" style={{marginLeft: 6}}/>
+              <EvilIcons name="play" size={25} color="#000" style={{ marginLeft: 6 }} />
               <Text style={{ marginLeft: 5, color: '#000' }}>播放全部</Text>
               <Text style={{ fontSize: 12, color: '#a9a9a9', marginLeft: 2 }}>(共{this.state.playlist.trackCount}首)</Text>
             </View>
@@ -193,13 +193,14 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    goPlayMusicScreen: (song: SongDetailState, navigation: any) => {
+    goPlayMusicScreen: (song: SongDetailState, tracks: TrackSong[], navigation: any) => {
       dispatch(setSongDetail(song));
+      dispatch(setSongTracks(tracks));
       const { navigate } = navigation;
-      console.log(song.id);
-        navigate('PlayMusic', {
-          songId: song.id
-        });
+      console.log(song, tracks);
+      navigate('PlayMusic', {
+        songId: song.id
+      });
     }
   }
 }

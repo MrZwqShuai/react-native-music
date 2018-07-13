@@ -1,13 +1,17 @@
 import * as React from 'react';
 import { PureComponent } from 'react';
-import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import { Animated } from 'react-native';
 import screen from '../../utils/screen';
 import { setLyricShow } from '../../redux/action';
 import { connect } from 'react-redux';
+import { TrackSong } from '../interface/index';
+import { SongDetail } from '../../redux/redux-model';
 type Props = {
   isPlaying: boolean;
-  coverImg: string;
+  songDetail: SongDetail;
+  tracks: TrackSong[];
+  toggleMusic: () => void;
 }
 
 type State = {
@@ -21,7 +25,7 @@ class CDScene extends PureComponent<Props, State> {
   rotateAnim: any;
 
   timer: number;
-  
+
   wiperAnim: any;
 
   constructor(props: Props) {
@@ -33,27 +37,51 @@ class CDScene extends PureComponent<Props, State> {
     this.wiperAnim = new Animated.Value(0);
   }
 
-  public render() {
+  public renderCDCore() {
     const rotateAnimInterpolate = this.rotateAnim.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg']
     });
+    const CDCore = this.props.tracks.map((trackSong: TrackSong, idx: number) => {
+      return (
+      <View style={{ width: screen.width, alignItems: 'center' }} key={idx}>
+      <TouchableWithoutFeedback
+        onPress={() => { this.props._onCDPress() }}>
+        <Animated.View style={[styles.CdBox, {
+          transform: [{
+            rotate: rotateAnimInterpolate
+          }]
+        }]}
+        >
+          {this.props.children}
+          <Image source={{ uri: trackSong.al.picUrl }} style={styles.CdCover} />
+        </Animated.View>
+      </TouchableWithoutFeedback>
+    </View>
+      )
+    })
+    return CDCore
+  }
+
+  public render() {
     return (
       <View style={{ flex: 1, alignItems: 'center' }}>
         <Animated.Image source={require('../../assets/images/needle.png')} style={styles.CdNeedle}>
         </Animated.Image>
-        <TouchableWithoutFeedback
-          onPress={() => { this.props._onCDPress() }}>
-          <Animated.View style={[styles.CdBox, {
-            transform: [{
-              rotate: rotateAnimInterpolate
-            }]
-          }]}
-          >
-            {this.props.children}
-            <Image source={{uri: this.props.coverImg}} style={styles.CdCover} />
-          </Animated.View>
-        </TouchableWithoutFeedback>
+        <View
+          style={styles.CdBoxBg}
+        >
+        </View>
+        <ScrollView
+          horizontal={true}
+          alwaysBounceVertical={true}
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled={true}
+          stickyHeaderIndices={[2]}
+          onMomentumScrollEnd={(e) => { this.onScrollEnd(e) }}
+        >
+          {this.renderCDCore()}
+        </ScrollView>
       </View>
     )
   }
@@ -67,6 +95,12 @@ class CDScene extends PureComponent<Props, State> {
     clearTimeout(this.timer);
   }
 
+  private onScrollEnd(scroll: any) {
+    console.log(scroll.nativeEvent.contentOffset.x);
+    let currentIdx = scroll.nativeEvent.contentOffset.x/screen.width;
+    this.props.toggleMusic(currentIdx);
+  }
+
   createRotateAnim() {
     return Animated.timing(
       this.rotateAnim,
@@ -78,24 +112,11 @@ class CDScene extends PureComponent<Props, State> {
   }
 
   rotateStart() {
-    this.createRotateAnim().start(() => {
-      if(this.props.isPlaying) {
-        this.rotateAnim.setValue(0);
-        this.rotateStart();
-      }
-    });
-    Animated.timing(
-      this.wiperAnim,
-      {
-        toValue: 1,
-        easing: Easing.out(Easing.linear),
-        duration: 1000,
-      }
-    ).start();
+    this.createRotateAnim().start();
   }
 
   rotateStop() {
-    // this.createRotateAnim().stop();
+    this.createRotateAnim().stop();
   }
 
 }
@@ -104,12 +125,22 @@ const styles = StyleSheet.create({
   CdBox: {
     width: screen.width / 1.32,
     height: screen.width / 1.32,
-    marginTop: -20,
-    zIndex: -1,
+    marginTop: (screen.width / 1.2 - screen.width / 1.32) / 2,
     borderRadius: screen.width / 1.32 / 2,
     backgroundColor: '#fff',
     borderWidth: 40,
     borderColor: '#000',
+  },
+  CdBoxBg: {
+    position: 'absolute',
+    width: screen.width / 1.2,
+    height: screen.width / 1.2,
+    top: screen.width / 3.5,
+    borderRadius: screen.width / 1.2,
+    backgroundColor: '#f0f8ff',
+    borderWidth: 12,
+    borderColor: '#f0f8ff',
+    opacity: .1
   },
   CdCover: {
     width: screen.width / 1.82,

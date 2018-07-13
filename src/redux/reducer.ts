@@ -30,14 +30,22 @@ const CDReducer = (state: CDState = {
 const songDetailReducer = (state: SongDetailState = {song: {
   id: 0,
   name: '',
-  coverImg: ''
-}}, action: songDetailAction) => {
+  coverImg: '',
+  idx: 0
+}, tracks: []}, action: SongDetailState) => {
   switch (action.type) {
     case TYPE.SET_SONG_DETAIL:
-    return Object.assign({}, state, {song: action.song});
+      return Object.assign({}, state, {song: action.song});
+    case TYPE.SET_SONG_TRACKS:
+      return addPlayList(state, action);
     default: 
       return {...state};
   }
+}
+
+function addPlayList(state: SongDetailState, action: SongDetailState) {
+  state.tracks = state.tracks.concat(action.tracks);
+  return state;
 }
 
 export default combineReducers({

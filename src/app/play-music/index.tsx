@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PureComponent } from 'react';
-import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Easing, Image, TouchableWithoutFeedback, Alert } from 'react-native';
 import { Animated } from 'react-native';
 import screen from '../../utils/screen';
 import CDScene from './cd';
@@ -13,10 +13,13 @@ import Video from 'react-native-video';
 import { getAudioTime } from '../../utils/index';
 import { getMusicUrlById } from '../api/index';
 import { SongDetail } from '../../redux/redux-model';
+import Sound from 'react-native-sound';
+import { TrackSong, AL } from '../interface/index';
 type Props = {
   isShowLyric: boolean;
   navigation: any;
-  songDetail: SongDetail
+  songDetail: SongDetail;
+  songTracks: TrackSong[];
 }
 
 type State = {
@@ -38,6 +41,12 @@ class PlayMusicScene extends PureComponent<Props, State> {
 
   player: any;
 
+  // 歌曲的引用
+  sound: any;
+
+  // 定时器引用
+  timer: any;
+
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -47,6 +56,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
       currentDuration: 0,
       songUrl: ''
     };
+    Sound.setCategory('Playback', true);
   }
 
   public render() {
@@ -55,7 +65,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
     if (this.props.isShowLyric) {
       playMusicSceneRender = <LyricScene />
     } else {
-      playMusicSceneRender = <CDScene isPlaying={this.state.isPlaying} coverImg={this.props.songDetail.coverImg} onRef={(ref: any) => { this.onRef(ref) }} />
+      playMusicSceneRender = <CDScene isPlaying={this.state.isPlaying} tracks={this.props.songTracks} songDetail={this.props.songDetail} onRef={(ref: any) => { this.onRef(ref) }} toggleMusic={this.toggleMusic.bind(this)} />
     }
     if (this.state.isPlaying) {
       musicState = <Icon name="control-pause" size={22} color="#fff" />;
@@ -65,19 +75,6 @@ class PlayMusicScene extends PureComponent<Props, State> {
     return (
       <View style={{ flex: 1, backgroundColor: '#9e9e9e' }}>
         {playMusicSceneRender}
-        <View>
-          <Video source={{ uri: this.state.songUrl}}   // Can be a URL or a local file.
-            ref={(ref) => {
-              this.player = ref
-            }}                                      // Store reference
-            onLoad={(e: any) => { this.onLoadMusic(e) }}
-            onProgress={(e: any) => { this.onProgressMusic(e) }}
-            onEnd={this.onEnd}                      // Callback when playback finishes
-            onError={this.videoError}               // Callback when video cannot be loaded
-            style={styles.backgroundVideo}
-            paused={!this.state.isPlaying}
-          />
-        </View>
         <View style={{ marginLeft: 10, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Text style={styles.audioDurationComplete}>
             {getAudioTime(this.state.currentDuration)}
@@ -111,11 +108,16 @@ class PlayMusicScene extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    this.getMusicUrlById();
+    this.getMusicUrlByIdx(this.props.songDetail.idx);
   }
 
-  getSongId(): number {
-    let songId = this.props.navigation.state.params.songId;
+  componentWillUnmount() {
+    this.destoryMusic();
+    clearTimeout(this.timer);
+  }
+
+  getSongId(songIdx: number): number {
+    let songId = this.props.songTracks[songIdx].id;
     return songId;
   }
 
@@ -137,7 +139,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
   // 正在播放音乐
   onProgressMusic(e: any) {
     let currentTime = Math.floor(e.currentTime);
-    let progressSpeed = e.currentTime/this.state.totalDuration;
+    let progressSpeed = e.currentTime / this.state.totalDuration;
     this.setState({
       currentDuration: currentTime,
       progressSpeed: Number(progressSpeed)
@@ -146,11 +148,13 @@ class PlayMusicScene extends PureComponent<Props, State> {
 
   toggleMusicState() {
     if (this.state.isPlaying) {
+      this.pauseMusic()
       this.setState({
         isPlaying: false
       });
       this.CDSceneRef.rotateStop();
     } else {
+      this.playMusice(this.sound)
       this.CDSceneRef.rotateStart();
     }
     this.setState((prevState: any) => {
@@ -159,6 +163,50 @@ class PlayMusicScene extends PureComponent<Props, State> {
       }
     });
 
+  }
+
+  /**
+   * 播放音乐
+   */
+  playMusice(sound: any) {
+    sound.play((success: any) => {
+      this.videoError();
+      sound.reset();
+    });
+    // this.CDSceneRef.rotateStart();
+  }
+
+  /**
+   * 暂停当前播放
+   */
+  pauseMusic() {
+    this.sound.pause();
+  }
+
+  /**
+   * 销毁音乐
+   */
+  destoryMusic() {
+    this.sound.release();
+  }
+
+  /**
+   * 给子组件调用 滑屏切换音乐
+   */
+  async toggleMusic(currentIdx: number) {
+    this.destoryMusic();
+    this.setState((prevState: any) => {
+      return {
+        isPlaying: true
+      }
+    });
+    this.CDSceneRef.rotateStop();
+    this.CDSceneRef.rotateStart();
+    let soundInstance = await this.getMusicUrlByIdx(currentIdx);
+    // 这里有问题 为毛定时器不准...
+    this.timer = setTimeout(() => {
+      this.playMusice(soundInstance);
+    }, 8000);
   }
 
   /**
@@ -171,9 +219,6 @@ class PlayMusicScene extends PureComponent<Props, State> {
     this.player.seek(this.state.currentDuration);
   }
 
-  componentWillReceiveProps(nextProps: any) {
-    console.log(nextProps, '----nextProps----');
-  }
 
   /**
    * 按下音乐暂停
@@ -195,16 +240,43 @@ class PlayMusicScene extends PureComponent<Props, State> {
     this.CDSceneRef = ref;
   }
 
-  async getMusicUrlById() {
-    let songId = this.getSongId();
+  /**
+   * 播放音乐
+   */
+
+  playSound(songResource: string) {
+    const callback = (error, sound) => {
+      console.log(error, '--error--')
+      if (error) {
+        Alert.alert('error', error.message);
+        return;
+      }
+      this.setState({
+        totalDuration: sound._duration
+      });
+    };
+    this.sound = new Sound(songResource, Sound.MAIN_BUNDLE, error => callback(error, this.sound));
+    console.log(this.sound, '歌曲信息');
+    return this.sound;
+  }
+
+  /**
+   * 
+   * @param songIdx 
+   * 返回音乐实例 供应链调用
+   */
+  async getMusicUrlByIdx(songIdx: number) {
+    let songId = this.getSongId(songIdx);
     let response = await getMusicUrlById(songId);
     let responseJson = await response.json();
+    let soundInstance;
     if (responseJson.code === 200) {
       this.setState({
         songUrl: responseJson.data[0].url
       });
-      console.log(this.state.songUrl, '--90dsadsad0---')
+      soundInstance = this.playSound(responseJson.data[0].url);
     }
+    return soundInstance
   }
 }
 
@@ -224,11 +296,17 @@ const styles = StyleSheet.create({
 
 
 const mapStateToProps = ({ CDReducer, songDetailReducer }: any) => {
-  PlayMusicScene.navTitle = songDetailReducer.song.name;
+  console.log(songDetailReducer, 'songDetailReducer')
   return {
     isShowLyric: CDReducer.isShowLyric,
-    songDetail: songDetailReducer.song 
+    songDetail: songDetailReducer.song,
+    songTracks: songDetailReducer.tracks
   }
 }
 
 export default connect(mapStateToProps)(PlayMusicScene);
+
+
+/**
+ * 如果用户点进来没等请求 直接点击播放是有问题的
+ */
