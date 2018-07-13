@@ -38,20 +38,16 @@ class CDScene extends PureComponent<Props, State> {
   }
 
   public renderCDCore() {
-    const rotateAnimInterpolate = this.rotateAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0deg', '360deg']
-    });
+    // const rotateAnimInterpolate = this.rotateAnim.interpolate({
+    //   inputRange: [0, 1],
+    //   outputRange: ['0deg', '360deg']
+    // });
     const CDCore = this.props.tracks.map((trackSong: TrackSong, idx: number) => {
       return (
         <View style={{ width: screen.width, alignItems: 'center' }} key={idx}>
           <TouchableWithoutFeedback
             onPress={() => { this.props._onCDPress() }}>
-            <Animated.View style={[styles.CdBox, {
-              transform: [{
-                rotate: rotateAnimInterpolate
-              }]
-            }]}
+            <Animated.View style={styles.CdBox}
             >
               {this.props.children}
               <Image source={{ uri: trackSong.al.picUrl }} style={styles.CdCover} />
@@ -101,23 +97,23 @@ class CDScene extends PureComponent<Props, State> {
     this.props.toggleMusic(currentIdx);
   }
 
-  createRotateAnim() {
-    return Animated.timing(
-      this.rotateAnim,
-      {
-        toValue: 1,
-        easing: Easing.out(Easing.linear),
-        duration: 10000,
-      });
-  }
+  // createRotateAnim() {
+  //   return Animated.timing(
+  //     this.rotateAnim,
+  //     {
+  //       toValue: 1,
+  //       easing: Easing.out(Easing.linear),
+  //       duration: 10000,
+  //     });
+  // }
 
-  rotateStart() {
-    this.createRotateAnim().start();
-  }
+  // rotateStart() {
+  //   this.createRotateAnim().start();
+  // }
 
-  rotateStop() {
-    this.createRotateAnim().stop();
-  }
+  // rotateStop() {
+  //   this.createRotateAnim().stop();
+  // }
 
 }
 

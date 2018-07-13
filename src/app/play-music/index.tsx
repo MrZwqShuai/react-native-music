@@ -36,7 +36,14 @@ class PlayMusicScene extends PureComponent<Props, State> {
 
   static navigationOptions = ({ navigation }: any) => ({
     title: PlayMusicScene.navTitle,
-    tabBarVisible: false
+    tabBarVisible: false,
+    headerTitleStyle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#000',
+      fontWeight: 'normal',
+    },
   })
 
   player: any;
@@ -63,6 +70,7 @@ class PlayMusicScene extends PureComponent<Props, State> {
   }
 
   public render() {
+    PlayMusicScene.navTitle = this.props.songDetail.name
     let playMusicSceneRender = null;
     let musicState = null;
     if (this.props.isShowLyric) {
@@ -147,10 +155,10 @@ class PlayMusicScene extends PureComponent<Props, State> {
       this.setState({
         isPlaying: false
       });
-      this.CDSceneRef.rotateStop();
+      // this.CDSceneRef.rotateStop();
     } else {
       this.playMusice(this.sound)
-      this.CDSceneRef.rotateStart();
+      // this.CDSceneRef.rotateStart();
     }
     this.setState((prevState: any) => {
       return {
@@ -211,12 +219,12 @@ class PlayMusicScene extends PureComponent<Props, State> {
         isPlaying: true
       }
     });
-    this.CDSceneRef.rotateStop();
+    // this.CDSceneRef.rotateStop();
     let soundInstance = await this.getMusicUrlByIdx(currentIdx);
     // 这里有问题 为毛定时器不准...
     this.timer = setTimeout(() => {
       this.playMusice(soundInstance);
-      this.CDSceneRef.rotateStart();
+      // this.CDSceneRef.rotateStart();
       clearTimeout(this.timer);
     }, 9000);
   }
